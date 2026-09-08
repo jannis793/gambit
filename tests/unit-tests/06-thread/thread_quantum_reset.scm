@@ -84,5 +84,23 @@
 
 (check-blocking-quantum (lambda () (thread-sleep! 0.001)))
 
+;; A contended mutex resumes with a fresh quantum.
+(check-blocking-quantum
+ (lambda ()
+   (let ((mutex (make-mutex)))
+     (mutex-lock! mutex #f #f)
+     (thread-start! (make-local-thread (lambda () (mutex-unlock! mutex))))
+     (mutex-lock! mutex)
+     (mutex-unlock! mutex))))
+
+;; Waiting for a condition variable also ends the old quantum.
+(check-blocking-quantum
+ (lambda ()
+   (let ((mutex (make-mutex)) (condvar (make-condition-variable)))
+     (mutex-lock! mutex)
+     (thread-start! (make-local-thread
+                     (lambda () (condition-variable-signal! condvar))))
+     (mutex-unlock! mutex condvar))))
+
 (##set-heartbeat-interval! (f64vector-ref saved-heartbeat 0))
 (thread-quantum-set! (current-thread) saved-quantum)

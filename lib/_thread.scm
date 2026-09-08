@@ -3734,10 +3734,8 @@
                              (##lock-2-threads! current-thread new-owner)
                              (macro-lock-thread! current-thread))
 
-                         ;;TODO: reenable
-                         #;
-                         (macro-thread-boost-and-clear-quantum-used!
-                          current-thread)
+                         ;; Blocking ends the current quantum.
+                         (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
                          ;; save new-owner in thread so that mutex-unlock!
                          ;; can use this information when thread ends waiting
@@ -4019,10 +4017,8 @@
                 ;; acquire low-level lock of the current thread
                 (macro-lock-thread! current-thread)
 
-                ;;TODO: reenable
-                #;
-                (macro-thread-boost-and-clear-quantum-used!
-                 current-thread)
+                ;; Blocking ends the current quantum.
+                (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
                 ;; add current thread to blocked thread queue
                 ;; of the condition variable
@@ -4110,10 +4106,8 @@
                  current-thread
                  ##thread-void-action!)
 
-                ;;TODO: reenable
-                #;
-                (macro-thread-boost-and-clear-quantum-used!
-                current-thread)
+                ;; Blocking ends the current quantum.
+                (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
                 (##thread-btq-insert! condvar current-thread)
 
