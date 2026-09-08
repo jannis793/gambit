@@ -1800,8 +1800,8 @@
                                  current-thread
                                  ##thread-void-action!)
 
-                                ;;TODO: reenable
-                                ;;(macro-thread-unboost-and-clear-quantum-used! current-thread)
+                                ;; Blocking ends the current quantum.
+                                (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
                                 ;; suspend current thread on end-condvar
                                 (##thread-btq-insert! end-condvar current-thread)
@@ -1974,10 +1974,8 @@
                      current-thread
                      ##thread-void-action!)
 
-                    ;;TODO:reenable
-                    #;
-                    (macro-thread-unboost-and-clear-quantum-used!
-                    current-thread)
+                    ;; Blocking ends the current quantum.
+                    (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
                     ;; acquire low-level lock of processor
                     (macro-lock-current-processor!)

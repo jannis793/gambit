@@ -53,5 +53,36 @@
 (thread-join! b)
 (test-equal '(a a a b b b a a a b b b a a a b b b) (reverse events))
 
+;; Blocking also starts a fresh quantum when the thread resumes.
+(define (check-blocking-quantum block!)
+  (let ((tester
+         (make-local-thread
+          (lambda ()
+            (set! events '())
+            (thread-yield!)
+            (##thread-heartbeat!)
+            (##thread-heartbeat!)
+            (block!)
+            (let ((worker (make-local-thread (lambda () (record! 'worker)))))
+              (thread-start! worker)
+              (##thread-heartbeat!)
+              (record! 'one)
+              (##thread-heartbeat!)
+              (record! 'two)
+              (##thread-heartbeat!)
+              (record! 'three)
+              (thread-join! worker))
+            (test-equal '(one two worker three) (reverse events))))))
+    (thread-start! tester)
+    (thread-join! tester)))
+
+(check-blocking-quantum
+ (lambda ()
+   (let ((worker (make-local-thread (lambda () #t))))
+     (thread-start! worker)
+     (thread-join! worker))))
+
+(check-blocking-quantum (lambda () (thread-sleep! 0.001)))
+
 (##set-heartbeat-interval! (f64vector-ref saved-heartbeat 0))
 (thread-quantum-set! (current-thread) saved-quantum)
