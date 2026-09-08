@@ -1895,8 +1895,9 @@
 
       (lambda (current-thread)
 
-        ;;TODO: reenable
-        ;;(macro-thread-unboost-and-clear-quantum-used! current-thread)
+        ;; Start a fresh quantum after yielding. Priority unboosting
+        ;; remains disabled until SMP priority inheritance is supported.
+        (macro-thread-quantum-used-set! current-thread (macro-inexact-+0))
 
         (macro-thread-resume-thunk-set!
          current-thread
@@ -1919,8 +1920,8 @@
 
      ;; Fast case where only the current thread is runnable.
 
-     ;;TODO: reenable
-     ;;(macro-thread-unboost-and-clear-quantum-used! (macro-current-thread))
+     ;; Even without another runnable thread, yielding ends the quantum.
+     (macro-thread-quantum-used-set! (macro-current-thread) (macro-inexact-+0))
 
      ;; release low-level lock of processor
      (macro-unlock-current-processor!)
